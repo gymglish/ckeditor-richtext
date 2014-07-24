@@ -1,0 +1,19 @@
+{
+  "name": "ckeditor-richtext",
+  "version": "0.0.0",
+  "homepage": "https://github.com/gymglish/ckeditor-richtext",
+  "authors": [
+    "Aurélien Matouillot <a.matouillot@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "ckeditor": "~4.4.3"
+  }
+}
