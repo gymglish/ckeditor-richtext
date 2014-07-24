@@ -1,62 +1,44 @@
-(function($) {
-  /*
-    ======== A Handy Little QUnit Reference ========
-    http://api.qunitjs.com/
+(function(CKEDITOR) {
 
-    Test methods:
-      module(name, {[setup][ ,teardown]})
-      test(name, callback)
-      expect(numberOfAssertions)
-      stop(increment)
-      start(decrement)
-    Test assertions:
-      ok(value, [message])
-      equal(actual, expected, [message])
-      notEqual(actual, expected, [message])
-      deepEqual(actual, expected, [message])
-      notDeepEqual(actual, expected, [message])
-      strictEqual(actual, expected, [message])
-      notStrictEqual(actual, expected, [message])
-      throws(block, [expected], [message])
-  */
+    var utils = CKEDITOR.ggRichtext.utils;
 
-  module('jQuery#ckeditor_richtext', {
-    // This will run before each test in this module.
-    setup: function() {
-      this.elems = $('#qunit-fixture').children();
-    }
-  });
+    module('ckeditor_richtext.utils');
 
-  test('is chainable', function() {
-    expect(1);
-    // Not a bad test to run on collection methods.
-    strictEqual(this.elems.ckeditor_richtext(), this.elems, 'should be chainable');
-  });
+    test('richtext.utils.richtextAttrsToHtml', function() {
+        var s, expected, res;
+        s = 'class=hello id=myid class=world';
+        expected = ' class="hello world" id="myid"';
+        res = utils.richtextAttrsToHtml(s);
+        equal(res, expected);
 
-  test('is awesome', function() {
-    expect(1);
-    strictEqual(this.elems.ckeditor_richtext().text(), 'awesome0awesome1awesome2', 'should be awesome');
-  });
+        s = 'class="hello" id="myid"   alt=plop ';
+        expected = ' class="hello" id="myid" alt="plop"';
+        res = utils.richtextAttrsToHtml(s);
+        equal(res, expected);
 
-  module('jQuery.ckeditor_richtext');
+        s = 'class="hel=lo"';
+        throws(function(){
+            utils.richtextAttrsToHtml(s);
+        }, function(e){
+            return e.toString() === 'Bad attribute ' + s;
+        });
+    });
 
-  test('is awesome', function() {
-    expect(2);
-    strictEqual($.ckeditor_richtext(), 'awesome.', 'should be awesome');
-    strictEqual($.ckeditor_richtext({punctuation: '!'}), 'awesome!', 'should be thoroughly awesome');
-  });
+    test('richtext.utils.richtextToPseudoHtml', function() {
+        var s, expected, res;
+        s = '{{div}}Hello world{{/div}}';
+        expected = '<div>Hello world</div>';
+        res = utils.richtextToPseudoHtml(s);
+        equal(res, expected);
 
-  module(':ckeditor_richtext selector', {
-    // This will run before each test in this module.
-    setup: function() {
-      this.elems = $('#qunit-fixture').children();
-    }
-  });
+        s = '{{div class=myclass}}Hello world{{/div}}';
+        expected = '<div class="myclass">Hello world</div>';
+        res = utils.richtextToPseudoHtml(s);
+        equal(res, expected);
 
-  test('is awesome', function() {
-    expect(1);
-    // Use deepEqual & .get() when comparing jQuery objects.
-    deepEqual(this.elems.filter(':ckeditor_richtext').get(), this.elems.last().get(), 'knows awesome when it sees it');
-  });
-
-}(jQuery));
+        s = '{{tag=myclass}}Hello world{{/tag}}';
+        expected = '<tag tagattr="myclass">Hello world</tag>';
+        res = utils.richtextToPseudoHtml(s);
+        equal(res, expected);
+    });
+}(CKEDITOR));
