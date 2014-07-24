@@ -8,6 +8,21 @@
 
 (function(CKEDITOR) {
 
+    var RICHTEXT_TAGS = {
+        em: {
+            allowedAttrs: ['class']
+        },
+        strong: {
+            allowedAttrs: ['class']
+        },
+        center: {},
+        link: {
+            htmlTag: 'a',
+            tagAttr: 'href',
+            allowedAttrs: ['target', 'href', 'style', 'class']
+        }
+    };
+
     var richtextOpentagRe = new RegExp('({{([^/][^}]*)}})', 'g');
     var richtextClosetagRe = new RegExp('{{(/[^}]*)}}', 'g');
 
@@ -71,8 +86,55 @@
                 }
                 return '<' + tag + ns.richtextAttrsToHtml(attrs) + '>';
             });
+        },
+        ckeditorAllowedContent: function(conf) {
+            var s, def, tags = [];
+            for (var tag in conf) {
+                def = conf[tag];
+                s = tag;
+                if(def.allowedAttrs) {
+                    s += '[';
+                    var attrs = [], attr;
+                    for (var i in def.allowedAttrs) {
+                        attr = def.allowedAttrs[i];
+                        if (def.tagAttr === attr) {
+                            // This attribute is required
+                            attr = '!' + TAG_ATTR_VALUE_NAME;
+                        }
+                        attrs.push(attr);
+                    }
+                    s += attrs.join(',');
+                    s += ']';
+                    if (def.allowedAttrs.indexOf('class') !== -1){
+                        // We allow any class name
+                        s += '(*)';
+                    }
+                }
+                tags.push(s);
+            }
+            return tags.join(';');
         }
     };
+
+    // CKEDITOR config for this plugin
+    // TODO: Make sure it's the right place to put this config
+    //
+    // We want BR for new line, we don't want any p or div in our richtext
+    CKEDITOR.config.enterMode = CKEDITOR.ENTER_BR;
+    // Be strict on the addable tag and attribute.
+    CKEDITOR.config.allowedContent = richtext.utils.ckeditorAllowedContent(RICHTEXT_TAGS);
+    // Hack: By default link is an autoclose tag but in our richtext we want to
+    // put some content. It works since we will never have autoclose link in
+    // our editor.
+    delete CKEDITOR.dtd.$empty.link;
+    CKEDITOR.plugins.add('ggrichtext', {
+        init: function(editor) {
+            editor.on('setData', function(evt) {
+                var v = evt.data.dataValue;
+                evt.data.dataValue = richtext.utils.richtextToPseudoHtml(v);
+            });
+        }
+    });
 
     // Be able to access to the namespace to easily test functions
     CKEDITOR.ggRichtext = richtext;
