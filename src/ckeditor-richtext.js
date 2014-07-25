@@ -20,6 +20,11 @@
             htmlTag: 'a',
             tagAttr: 'href',
             allowedAttrs: ['target', 'href', 'style', 'class']
+        },
+        tab: {
+            htmlTag: 'table',
+            allowedAttrs: ['class'],
+            quotes: true,
         }
     };
 
@@ -143,15 +148,30 @@
         }
     };
 
-	var HtmlWriter = CKEDITOR.tools.createClass({
+    var HtmlWriter = CKEDITOR.tools.createClass({
         base: CKEDITOR.htmlWriter,
         proto: {
-			attribute : function(attName, attValue) {
-				if (attName === TAG_ATTR_VALUE_NAME) {
+            openTag: function( tagName, attributes) {
+                this._currentTagName = tagName;
+                CKEDITOR.htmlWriter.prototype.openTag.call(this, tagName, attributes);
+            },
+            attribute : function(attName, attValue) {
+                if (attName === TAG_ATTR_VALUE_NAME) {
                     this._.output.push('=', attValue );
-				}
+                }
                 else {
-                    CKEDITOR.htmlWriter.prototype.attribute.call(this, attName, attValue);
+                    var def = RICHTEXT_TAGS[this._currentTagName];
+                    if(def.quotes){
+                        // We want quotes on the attributes
+                        CKEDITOR.htmlWriter.prototype.attribute.call(this, attName, attValue);
+                    }
+                    else {
+                        if (typeof attValue === 'string') {
+                            attValue = CKEDITOR.tools.htmlEncodeAttr( attValue );
+                        }
+
+                        this._.output.push( ' ', attName, '=', attValue);
+                    }
                 }
             }
         }
@@ -219,18 +239,25 @@
 
                         }
 
+                        // Remove the unsupported attributes
                         def = RICHTEXT_TAGS[richtextTag];
-                        var lis = [];
-                        for(var attr in element.attributes) {
-                            if (attr == TAG_ATTR_VALUE_NAME) {
-                                continue;
-                            }
-                            if (def.allowedAttrs.indexOf(attr) === -1) {
-                                lis.push(attr);
-                            }
+                        if (! def || ! def.allowedAttrs) {
+                            // No attributes allowed
+                            element.attributes = {};
                         }
-                        for (var i in lis) {
-                            delete element.attributes[lis[i]];
+                        else {
+                            var lis = [];
+                            for(var attr in element.attributes) {
+                                if (attr === TAG_ATTR_VALUE_NAME) {
+                                    continue;
+                                }
+                                if (def.allowedAttrs.indexOf(attr) === -1) {
+                                    lis.push(attr);
+                                }
+                            }
+                            for (var i in lis) {
+                                delete element.attributes[lis[i]];
+                            }
                         }
                     },
                 }

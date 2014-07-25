@@ -153,7 +153,7 @@
         var ed = $('<div contenteditable="true" />').ckeditor(function() {
             assertToRichtext(ed, '<strong>strong</strong>', '{{strong}}strong{{/strong}}');
             // Allowed attribute
-            assertToRichtext(ed, '<strong class="test">strong</strong>', '{{strong class="test"}}strong{{/strong}}');
+            assertToRichtext(ed, '<strong class="test">strong</strong>', '{{strong class=test}}strong{{/strong}}');
             // Not allowed attribute
             assertToRichtext(ed, '<strong inexisting=plop>strong</strong>', '{{strong}}strong{{/strong}}');
             // Not allowed tag
@@ -162,6 +162,9 @@
             // Missing required attributes
             assertToRichtext(ed, '<a>strong</a>', '{{link}}strong\n{{/link}}\n');
             assertToRichtext(ed, '<a href="plop">anchor</a>', '{{link=plop}}anchor\n{{/link}}\n');
+
+            // We expected quotes on attribute
+            assertToRichtext(ed, '<table class="richtext"></table>', '{{tab class="richtext"}}{{/tab}}');
             start();
         });
     });
