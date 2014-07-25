@@ -82,7 +82,7 @@
                 if (tag.indexOf('=') !== -1) {
                     var tmp = tag.split('=');
                     tag = tmp[0];
-                    attrs = TAG_ATTR_VALUE_NAME + '=' + tmp[1] + ' ';
+                    attrs = TAG_ATTR_VALUE_NAME + '=' + tmp[1] + ' ' + attrs;
                 }
                 return '<' + tag + ns.richtextAttrsToHtml(attrs) + '>';
             });

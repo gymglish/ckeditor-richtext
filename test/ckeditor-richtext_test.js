@@ -48,6 +48,11 @@
         expected = '<tag tagattr="myclass">Hello world</tag>';
         res = utils.richtextToPseudoHtml(s);
         equal(res, expected);
+
+        s = '{{tag=myclass alt=alt}}Hello world{{/tag}}';
+        expected = '<tag tagattr="myclass" alt="alt">Hello world</tag>';
+        res = utils.richtextToPseudoHtml(s);
+        equal(res, expected);
     });
 
     test('richtext.utils.ckeditorAllowedContent', function() {
