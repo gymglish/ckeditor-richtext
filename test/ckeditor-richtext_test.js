@@ -160,8 +160,8 @@
             assertToRichtext(ed, '<font>strong</font>', '{{font}}strong{{/font}}');
 
             // Missing required attributes
-            assertToRichtext(ed, '<a>strong</a>', '{{link}}strong\n{{/link}}\n');
-            assertToRichtext(ed, '<a href="plop">anchor</a>', '{{link=plop}}anchor\n{{/link}}\n');
+            assertToRichtext(ed, '<a>strong</a>', '{{link}}strong{{/link}}');
+            assertToRichtext(ed, '<a href="plop">anchor</a>', '{{link=plop}}anchor{{/link}}');
 
             // We expected quotes on attribute
             assertToRichtext(ed, '<table class="richtext"></table>', '{{tab class="richtext"}}{{/tab}}');

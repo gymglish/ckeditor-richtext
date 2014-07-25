@@ -150,6 +150,13 @@
 
     var HtmlWriter = CKEDITOR.tools.createClass({
         base: CKEDITOR.htmlWriter,
+        $: function() {
+            this.base();
+            this.setRules('link', {
+                breakBeforeClose: 0,
+                breakAfterClose: 0
+            });
+        },
         proto: {
             openTag: function( tagName, attributes) {
                 this._currentTagName = tagName;
