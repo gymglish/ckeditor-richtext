@@ -23,11 +23,22 @@
         }
     };
 
+    var HTML_TAGS = {};
+
+    for (var tag in RICHTEXT_TAGS) {
+        var def = RICHTEXT_TAGS[tag];
+        if(def.htmlTag) {
+            HTML_TAGS[def.htmlTag] = tag;
+        }
+    }
+
     var richtextOpentagRe = new RegExp('({{([^/][^}]*)}})', 'g');
     var richtextClosetagRe = new RegExp('{{(/[^}]*)}}', 'g');
 
     // Rewrite tags like {{tag=something}} in {{tab TAG_ATTR_VALUE_NAME=something}}
-    var TAG_ATTR_VALUE_NAME = 'tagattr';
+    // To rewrite the richtext from HTML correctly, we need this attribute to
+    // be the first.
+    var TAG_ATTR_VALUE_NAME = 'aaaatagattr';
 
     var richtext = {};
     richtext.utils = {
@@ -87,6 +98,16 @@
                 return '<' + tag + ns.richtextAttrsToHtml(attrs) + '>';
             });
         },
+        htmlToPseudoRichtext: function(html) {
+            return html.replace(/(<(\/?[^>]*)>)/g, function(match, p1, p2) {
+                // TODO: find better way the check it's a br. ckeditor should have a tag parser
+                if (p2 === 'br /') {
+                    // Leave the <br /> since it's the entermode of the editor
+                    return '<br />';
+                }
+                return '{{'+ p2 +'}}';
+            });
+        },
         ckeditorAllowedContent: function(conf) {
             var s, def, tags = [];
             for (var tag in conf) {
@@ -116,6 +137,20 @@
         }
     };
 
+	var HtmlWriter = CKEDITOR.tools.createClass({
+        base: CKEDITOR.htmlWriter,
+        proto: {
+			attribute : function(attName, attValue) {
+				if (attName === TAG_ATTR_VALUE_NAME) {
+                    this._.output.push('=', attValue );
+				}
+                else {
+                    CKEDITOR.htmlWriter.prototype.attribute.call(this, attName, attValue);
+                }
+            }
+        }
+    });
+
     // CKEDITOR config for this plugin
     // TODO: Make sure it's the right place to put this config
     //
@@ -134,7 +169,14 @@
                 evt.data.dataValue = richtext.utils.richtextToPseudoHtml(v);
             });
 
-            editor.dataProcessor.dataFilter.addRules( {
+            editor.on('getData', function(evt) {
+                var v = evt.data.dataValue;
+                evt.data.dataValue = richtext.utils.htmlToPseudoRichtext(v);
+            });
+
+            editor.dataProcessor.writer = new HtmlWriter();
+
+            editor.dataProcessor.dataFilter.addRules({
                 elements: {
                     $: function(element) {
                         if (typeof RICHTEXT_TAGS[element.name] !== 'undefined') {
@@ -149,6 +191,42 @@
                             }
                         }
                     }
+                }
+            });
+
+            editor.dataProcessor.htmlFilter.addRules({
+                elements: {
+                    $: function( element ) {
+                        var richtextTag = element.name, def;
+                        if (typeof HTML_TAGS[element.name] !== 'undefined') {
+                            richtextTag = HTML_TAGS[element.name];
+                            element.name = richtextTag;
+
+                            def = RICHTEXT_TAGS[richtextTag];
+                            if (def.tagAttr) {
+                                var value = element.attributes[def.tagAttr];
+                                if(typeof value !== 'undefined') {
+                                    delete element.attributes[def.tagAttr];
+                                    element.attributes[TAG_ATTR_VALUE_NAME] = value;
+                                }
+                            }
+
+                        }
+
+                        def = RICHTEXT_TAGS[richtextTag];
+                        var lis = [];
+                        for(var attr in element.attributes) {
+                            if (attr == TAG_ATTR_VALUE_NAME) {
+                                continue;
+                            }
+                            if (def.allowedAttrs.indexOf(attr) === -1) {
+                                lis.push(attr);
+                            }
+                        }
+                        for (var i in lis) {
+                            delete element.attributes[lis[i]];
+                        }
+                    },
                 }
             });
         }
