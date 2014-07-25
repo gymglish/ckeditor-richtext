@@ -110,7 +110,8 @@
                 allowedAttrs: ['target', 'href', 'style', 'class']
             }
         };
-        expected = 'link[target,!aaaatagattr,style,class](*)';
+        expected = ['link[target,!aaaatagattr,style,class](*)',
+                    'a[target,!href,style,class](*)'].join(';');
         res = utils.ckeditorAllowedContent(conf);
         equal(res, expected);
 

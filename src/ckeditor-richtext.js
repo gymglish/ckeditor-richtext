@@ -112,7 +112,7 @@
             var s, def, tags = [];
             for (var tag in conf) {
                 def = conf[tag];
-                s = tag;
+                s = '';
                 if(def.allowedAttrs) {
                     s += '[';
                     var attrs = [], attr;
@@ -131,7 +131,13 @@
                         s += '(*)';
                     }
                 }
-                tags.push(s);
+                tags.push(tag+s);
+                if (def.htmlTag) {
+                    if (def.tagAttr) {
+                        s = s.replace(TAG_ATTR_VALUE_NAME, def.tagAttr);
+                    }
+                    tags.push(def.htmlTag+s);
+                }
             }
             return tags.join(';');
         }
