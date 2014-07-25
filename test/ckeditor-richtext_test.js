@@ -110,7 +110,7 @@
 
             // Missing required attributes
             assertToHtml(ed, '{{link}}strong{{/link}}', 'strong');
-            assertToHtml(ed, '{{link=plop}}strong{{/link}}', '<link tagattr="plop">strong</link>');
+            assertToHtml(ed, '{{link=plop}}strong{{/link}}', '<a href="plop">strong</a>');
             start();
         });
     });

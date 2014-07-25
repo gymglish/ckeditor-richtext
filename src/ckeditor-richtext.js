@@ -133,6 +133,24 @@
                 var v = evt.data.dataValue;
                 evt.data.dataValue = richtext.utils.richtextToPseudoHtml(v);
             });
+
+            editor.dataProcessor.dataFilter.addRules( {
+                elements: {
+                    $: function(element) {
+                        if (typeof RICHTEXT_TAGS[element.name] !== 'undefined') {
+                            var def = RICHTEXT_TAGS[element.name];
+                            if (def.htmlTag) {
+                                element.name = def.htmlTag;
+                            }
+                            if (def.tagAttr) {
+                                var v = element.attributes[TAG_ATTR_VALUE_NAME];
+                                delete element.attributes[TAG_ATTR_VALUE_NAME];
+                                element.attributes[def.tagAttr] = v;
+                            }
+                        }
+                    }
+                }
+            });
         }
     });
 
